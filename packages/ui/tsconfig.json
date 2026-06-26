@@ -1,0 +1,14 @@
+{
+  "extends": "@repo/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": ["esnext", "dom"],
+    "jsx": "react-jsx",
+    "paths": {
+      "@repo/ui": ["./src/index.ts"],
+      "@repo/ui/*": ["./src/*"]
+    },
+    "types": []
+  },
+  "include": ["src", "nativewind-env.d.ts"]
+}
