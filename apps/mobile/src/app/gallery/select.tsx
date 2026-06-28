@@ -22,7 +22,7 @@ export default function SelectDemo() {
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a fruit" />
           </SelectTrigger>
-          <SelectContent className="w-full">
+          <SelectContent className="w-64">
             <SelectGroup>
               <SelectLabel>
                 <Text>Fruits</Text>

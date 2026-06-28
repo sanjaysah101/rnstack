@@ -112,12 +112,14 @@ function SelectContent({
                   className={cn(
                     "p-1",
                     position === "popper" &&
-                      cn(
-                        "w-full",
-                        Platform.select({
-                          web: "h-[var(--radix-select-trigger-height)] min-w-[var(--radix-select-trigger-width)]",
-                        })
-                      )
+                      // `w-full` is only correct on web, where it pairs with the
+                      // radix trigger-width var. On native the Content is portaled
+                      // into a full-window overlay, so `w-full` stretches items
+                      // across the whole screen and clips the Content's rounded
+                      // edges. Let native size to content instead.
+                      Platform.select({
+                        web: "w-full h-[var(--radix-select-trigger-height)] min-w-[var(--radix-select-trigger-width)]",
+                      })
                   )}
                 >
                   {children}

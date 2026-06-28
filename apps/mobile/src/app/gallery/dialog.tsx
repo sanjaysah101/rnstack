@@ -28,7 +28,9 @@ export default function DialogDemo() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Edit profile</DialogTitle>
-              <DialogDescription>Make changes and save when you're done.</DialogDescription>
+              <DialogDescription>
+                Make changes and save when you're done. more text
+              </DialogDescription>
             </DialogHeader>
             <View className="flex flex-col gap-2">
               <Label>Name</Label>

@@ -34,7 +34,7 @@ function Alert({
         )}
         {...props}
       >
-        <View className="absolute left-3.5 top-3">
+        <View className="absolute left-3.5 top-4">
           <Icon
             as={icon}
             className={cn("size-4", variant === "destructive" && "text-destructive", iconClassName)}
@@ -49,7 +49,7 @@ function Alert({
 function AlertTitle({ className, ...props }: React.ComponentProps<typeof Text>) {
   return (
     <Text
-      className={cn("mb-1 ml-0.5 min-h-4 pl-6 font-medium leading-none tracking-tight", className)}
+      className={cn("mb-1 ml-0.5 min-h-5 pl-6 font-medium leading-5 tracking-tight", className)}
       {...props}
     />
   );

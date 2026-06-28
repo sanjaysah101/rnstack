@@ -7,7 +7,6 @@ import {
   ContextMenuTrigger,
 } from "@repo/ui/components/ui/context-menu";
 import { Text } from "@repo/ui/components/ui/text";
-import { View } from "react-native";
 import { DemoScreen, DemoSection } from "@/components/demo-screen";
 
 export default function ContextMenuDemo() {
@@ -15,10 +14,10 @@ export default function ContextMenuDemo() {
     <DemoScreen title="Context Menu">
       <DemoSection label="Long-press the area (native)">
         <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <View className="h-32 items-center justify-center rounded-md border border-dashed border-border bg-card">
-              <Text className="text-muted-foreground">Long-press here</Text>
-            </View>
+          {/* No `asChild`: the primitive Trigger renders its own Pressable so
+              onLongPress fires. A plain View child would not be pressable. */}
+          <ContextMenuTrigger className="h-32 items-center justify-center rounded-md border border-dashed border-border bg-card">
+            <Text className="text-muted-foreground">Long-press here</Text>
           </ContextMenuTrigger>
           <ContextMenuContent className="w-56">
             <ContextMenuLabel>
