@@ -20,7 +20,8 @@ import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 import { Text } from "@repo/ui/components/ui/text";
 import { ThemeToggle } from "@repo/ui/components/ui/theme-toggle";
-import { Rocket } from "lucide-react-native";
+import { useRouter } from "expo-router";
+import { LayoutGrid, Rocket } from "lucide-react-native";
 import { ScrollView, View } from "react-native";
 
 function DialogPreview() {
@@ -116,14 +117,20 @@ function AccordionPreview() {
 }
 
 export default function Index() {
+  const router = useRouter();
+
   return (
     <ScrollView contentContainerClassName="items-center gap-4 bg-background p-6 pt-16">
       <View className="absolute right-6 top-6 z-10">
         <ThemeToggle />
       </View>
       <Text className="text-xl font-bold text-foreground">React Native Reusables</Text>
-      <Button>
-        <Icon as={Rocket} className="text-primary-foreground" />
+      <Button onPress={() => router.push("/gallery")}>
+        <Icon as={LayoutGrid} className="text-primary-foreground" />
+        <Text>Browse component gallery</Text>
+      </Button>
+      <Button variant="outline">
+        <Icon as={Rocket} />
         <Text>Get started</Text>
       </Button>
       <Button>

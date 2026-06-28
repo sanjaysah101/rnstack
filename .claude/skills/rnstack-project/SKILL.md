@@ -94,6 +94,15 @@ Then audit it for the native gotchas above (grid, TextInput, web-only utils) bef
 
 **Add a screen:** create a route file under `apps/mobile/src/app/` (expo-router file-based routing).
 
+**Component gallery / test harness:** `apps/mobile/src/app/gallery/` holds one demo route per
+`@repo/ui` component (driven by the registry in `apps/mobile/src/lib/gallery.ts`, grouped into
+Tier 1 primitives / Tier 2 inputs / Tier 3 overlays). Each screen uses the `DemoScreen` +
+`DemoSection` wrappers from `apps/mobile/src/components/demo-screen.tsx` (themed ScrollView with a
+ThemeToggle pinned top-right). This exists because RNR targets NativeWind v4 and we run v5-preview —
+every component must be eyeballed on-device in Expo Go for styling/flicker. When adding a new
+`@repo/ui` component, also add a gallery entry + demo route. Audit checklist:
+`docs/testing/component-testing-issue.md`.
+
 ## Building the app — keep it build-tool agnostic
 
 This is a **starter/CLI template**: it must NOT bake in any individual's EAS/cloud account. The
