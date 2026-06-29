@@ -32,13 +32,6 @@
   },
   "author": "Sanjay Kumar Sah",
   "license": "ISC",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "11.9.0",
-      "onFail": "download"
-    }
-  },
   "engines": {
     "node": ">=22.13"
   },
