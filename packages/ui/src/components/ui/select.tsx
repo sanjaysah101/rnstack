@@ -78,6 +78,13 @@ function SelectContent({
   className?: string;
   portalHost?: string;
 }) {
+  // On native the content is portaled and sizes to its own content, so it ends
+  // up narrower than the trigger. The primitive measures the trigger and exposes
+  // its width via context — match it so the dropdown lines up with the input.
+  const { triggerPosition } = SelectPrimitive.useRootContext();
+  const nativeWidth =
+    Platform.OS !== "web" && triggerPosition?.width ? { width: triggerPosition.width } : undefined;
+
   return (
     <SelectPrimitive.Portal hostName={portalHost}>
       <FullWindowOverlay>
@@ -85,8 +92,9 @@ function SelectContent({
           <TextClassContext.Provider value="text-popover-foreground">
             <NativeOnlyAnimatedView className="z-50" entering={FadeIn} exiting={FadeOut}>
               <SelectPrimitive.Content
+                style={nativeWidth}
                 className={cn(
-                  "bg-popover border-border relative z-50 min-w-[8rem] rounded-md border shadow-md shadow-black/5",
+                  "bg-popover border-border relative z-50 min-w-32 rounded-md border shadow-md shadow-black/5",
                   Platform.select({
                     web: cn(
                       "animate-in fade-in-0 zoom-in-95 origin-(--radix-select-content-transform-origin) max-h-52 overflow-y-auto overflow-x-hidden",
@@ -118,7 +126,7 @@ function SelectContent({
                       // across the whole screen and clips the Content's rounded
                       // edges. Let native size to content instead.
                       Platform.select({
-                        web: "w-full h-[var(--radix-select-trigger-height)] min-w-[var(--radix-select-trigger-width)]",
+                        web: "w-full h-(--radix-select-trigger-height) min-w-(--radix-select-trigger-width)",
                       })
                   )}
                 >
@@ -153,7 +161,7 @@ function SelectItem({
       className={cn(
         "active:bg-accent group relative flex w-full flex-row items-center gap-2 rounded-sm py-2 pl-2 pr-8 sm:py-1.5",
         Platform.select({
-          web: "focus:bg-accent focus:text-accent-foreground *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2 cursor-default outline-none data-[disabled]:pointer-events-none [&_svg]:pointer-events-none",
+          web: "focus:bg-accent focus:text-accent-foreground *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2 cursor-default outline-none data-disabled:pointer-events-none [&_svg]:pointer-events-none",
         }),
         props.disabled && "opacity-50",
         className

@@ -137,8 +137,7 @@ pnpm start            # open in Expo Go, then tap "Browse component gallery"
 
 Routes live in [`apps/mobile/src/app/gallery/`](apps/mobile/src/app/gallery) — an index grouped by
 risk tier (primitives → inputs → overlays) and one screen per component showing its variants/states,
-each with a `ThemeToggle` so you can check light/dark + flicker on the spot. The audit checklist is
-tracked in [`docs/testing/component-testing-issue.md`](docs/testing/component-testing-issue.md).
+each with a `ThemeToggle` so you can check light/dark + flicker on the spot.
 
 ## Adding UI components
 

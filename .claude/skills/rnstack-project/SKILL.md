@@ -48,7 +48,7 @@ These were each chosen to fix a concrete, verified breakage. Changing them re-br
 5. **`@repo/ui` RN-family deps are `peerDependencies`** (+ dev copies for standalone typecheck), never regular `dependencies` — the app provides the single native runtime.
 6. **`metro.config.js` is minimal.** Expo SDK 52+ auto-configures monorepos; do not add manual `watchFolders` / `nodeModulesPaths` / resolver hacks.
 
-## Theming — `apps/mobile/src/global.css` is the single source of truth
+## Theming — `apps/mobile/src/global.css` is the canonical palette
 
 NativeWind v5 + Tailwind v4 is **CSS-first** (no `tailwind.config.js`). Structure: tokens → `@theme inline` → `@source`.
 
@@ -59,6 +59,17 @@ NativeWind v5 + Tailwind v4 is **CSS-first** (no `tailwind.config.js`). Structur
 - **`@source "../../../packages/ui/src/**/*.{ts,tsx}"`** must stay — workspace packages are symlinked and Tailwind won't scan them otherwise, so classes used only in `@repo/ui` get purged.
 
 Dark mode: NativeWind v5 maps `dark:` to `@media (prefers-color-scheme: dark)`. Toggle at runtime with `Appearance.setColorScheme()` (see `@repo/ui` ThemeToggle) — the `useColorScheme` hook from `nativewind` is deprecated; use the one from `react-native`.
+
+### ⚠️ Theme colors live in TWO places — keep them in sync
+
+`global.css` and `apps/mobile/src/lib/theme.ts` hold the **same color values** for two different systems that can't read each other. **When you re-brand or change any token, edit BOTH** (light *and* dark in each), or the navigator chrome will drift from the app UI.
+
+- **`global.css`** — drives **NativeWind/Tailwind utilities** (`bg-primary`, `text-foreground`, …). Every `@repo/ui` component styled via `className` reads from here. Values are CSS custom properties.
+- **`lib/theme.ts`** — a JS mirror of the same tokens for things that can't use `className`:
+  - `NAV_THEME` → React Navigation's `ThemeProvider` (header / screen background / border in `_layout.tsx`).
+  - `THEME` → raw color strings for any inline `style` / non-className consumer (e.g. a chart lib, an icon tint computed in JS).
+
+They're duplicated because NativeWind (CSS variables) and React Navigation (a JS theme object) are separate systems — there is no single runtime value both consume. Treat `global.css` as the canonical palette and `theme.ts` as its hand-maintained JS copy. (A future improvement could generate `theme.ts` from the CSS tokens; until then it's manual.)
 
 ## Writing / editing RN Reusables components (native correctness)
 
@@ -74,6 +85,7 @@ Full detail on these gotchas is also captured in the memory note `nativewind-v5-
 ## Conventions
 
 - **Imports inside `@repo/ui`** use the package's own name + subpath: `import { cn } from "@repo/ui/lib/utils"`, `import { Text } from "@repo/ui/components/ui/text"`. Resolution works via the package `exports` map (`./components/*` → `./src/components/*.tsx`, `./lib/*` → `./src/lib/*.ts`).
+- **One component = one import path. Do NOT add a barrel** (`components/ui/index.ts` or re-exporting everything from `src/index.ts`). Always import per file: `@repo/ui/components/ui/button`, not `@repo/ui/components/ui`. This is deliberate, not an accident of the RNR CLI: Metro's tree-shaking is weak, so a barrel pulls the whole component graph into every screen's bundle (larger bundle, slower cold start). The verbosity is handled by editor auto-import. (There are no export-name collisions today, so a barrel is *safe* — it's just *worse for bundle size*, which is why we don't.)
 - **App imports** use `@/*` (→ `apps/mobile/src/*`) for app code and `@repo/ui/...` for the kit.
 - **File naming:** components/files are **kebab-case** (`theme-toggle.tsx`, `alert-dialog.tsx`). Exported React components are PascalCase; hooks are `useXxx`.
 - **Styling:** Tailwind classes via `className`, composed with `cn()`. No inline `StyleSheet` unless a prop can't be expressed in Tailwind (e.g. the `includeFontPadding` case).
@@ -100,8 +112,7 @@ Tier 1 primitives / Tier 2 inputs / Tier 3 overlays). Each screen uses the `Demo
 `DemoSection` wrappers from `apps/mobile/src/components/demo-screen.tsx` (themed ScrollView with a
 ThemeToggle pinned top-right). This exists because RNR targets NativeWind v4 and we run v5-preview —
 every component must be eyeballed on-device in Expo Go for styling/flicker. When adding a new
-`@repo/ui` component, also add a gallery entry + demo route. Audit checklist:
-`docs/testing/component-testing-issue.md`.
+`@repo/ui` component, also add a gallery entry + demo route, and eyeball it on-device.
 
 ## Building the app — keep it build-tool agnostic
 

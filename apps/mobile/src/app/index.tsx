@@ -32,7 +32,7 @@ function DialogPreview() {
           <Text>Open Dialog</Text>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-106.25">
         <DialogHeader>
           <DialogTitle>Edit profile</DialogTitle>
           <DialogDescription>
@@ -42,11 +42,11 @@ function DialogPreview() {
         <View className="flex flex-col gap-4">
           <View className="flex flex-col gap-2">
             <Label htmlFor="name-1">Name</Label>
-            <Input id="name-1" defaultValue="Pedro Duarte" />
+            <Input id="name-1" defaultValue="Sanjay Sah" />
           </View>
           <View className="flex flex-col gap-2">
             <Label htmlFor="username-1">Username</Label>
-            <Input id="username-1" defaultValue="@peduarte" />
+            <Input id="username-1" defaultValue="@sanjaysah101" />
           </View>
         </View>
         <DialogFooter>

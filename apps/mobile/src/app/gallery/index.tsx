@@ -1,7 +1,7 @@
 import { Card } from "@repo/ui/components/ui/card";
 import { Text } from "@repo/ui/components/ui/text";
 import { ThemeToggle } from "@repo/ui/components/ui/theme-toggle";
-import { Stack, useRouter } from "expo-router";
+import { type Href, Stack, useRouter } from "expo-router";
 import { Pressable, ScrollView, View } from "react-native";
 import { GALLERY } from "@/lib/gallery";
 
@@ -30,7 +30,12 @@ export default function GalleryIndex() {
             </View>
             <View className="flex flex-col gap-2">
               {group.entries.map((entry) => (
-                <Pressable key={entry.slug} onPress={() => router.push(`/gallery/${entry.slug}`)}>
+                <Pressable
+                  key={entry.slug}
+                  // slug is dynamic data; cast to Href since typed routes can't
+                  // narrow a runtime-built path to the specific route union.
+                  onPress={() => router.push(`/gallery/${entry.slug}` as Href)}
+                >
                   <Card className="flex flex-row items-center justify-between px-4 py-3">
                     <Text className="text-foreground">{entry.title}</Text>
                     <Text className="text-muted-foreground">›</Text>
