@@ -8,9 +8,10 @@ The point of rnstack is to skip the days normally lost to monorepo + NativeWind 
 quirks. Clone it, install, run — you get a working app with 30+ UI components, theming, and
 light/dark mode out of the box.
 
-> **Status:** working starter you can clone today, with a typed API layer (refresh-token auth,
-> TanStack Query) included. A `create-rnstack` CLI (scaffold by project name, choose how many
-> apps) and prebuilt Home/Settings screens are **planned** — see [Roadmap](#roadmap).
+> **Status:** working starter you can clone today — tab navigation with **Home + Settings**
+> screens, light/dark/system theme (persisted), and a typed API layer (refresh-token auth,
+> TanStack Query). A `create-rnstack` CLI (scaffold by project name, choose how many apps) is
+> **planned** — see [Roadmap](#roadmap).
 
 ## Stack
 
@@ -104,6 +105,20 @@ it queues and re-attach with `eas build:list`.
 > belong in your own copy, and are safe to commit in a private app repo (they're public identifiers,
 > not secrets). The starter intentionally ships without them.
 
+## Screens & navigation
+
+Bottom-tab navigation (expo-router) with two starter screens under
+[`app/(tabs)/`](apps/mobile/src/app/(tabs)):
+
+- **Home** (`index.tsx`) — a clean welcome screen to replace with your first feature.
+- **Settings** (`settings.tsx`) — **Appearance** (light / dark / **system**, persisted via
+  AsyncStorage), a **Developer** section linking the component gallery and data-fetching demo, and
+  **About** (app version).
+
+The theme preference is owned by `@repo/ui/lib/theme-context` (`ThemeProvider` +
+`useThemePreference`), wrapped once in `app/_layout.tsx`. "System" follows the OS; the choice
+survives restarts.
+
 ## Theming
 
 Theme lives in **one place**: [`apps/mobile/src/global.css`](apps/mobile/src/global.css). It has
@@ -196,7 +211,6 @@ Planned, not yet built:
 
 - **`create-rnstack` CLI** — scaffold a new monorepo by project name in one command.
 - **Multi-app generation** — choose how many apps to create under `apps/` at init.
-- **Starter screens** — Home and Settings, pre-wired.
 
 ## License
 
