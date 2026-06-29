@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@expo/ui": "~56.0.18",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "@repo/api-client": "workspace:*",
     "@repo/ui": "workspace:*",
     "@rn-primitives/portal": "^1.4.0",

@@ -18,8 +18,12 @@ rn-monorepo/
 ├── apps/
 │   └── mobile/                 # Expo app (expo-router, SDK 56)
 │       ├── src/
-│       │   ├── app/            # expo-router routes (_layout.tsx, index.tsx, ...)
-│       │   ├── lib/            # app-level helpers (theme.ts: THEME + NAV_THEME)
+│       │   ├── app/            # expo-router routes
+│       │   │   ├── (tabs)/      #   Home (index) + Settings tab group
+│       │   │   ├── gallery/     #   component gallery (pushed over tabs)
+│       │   │   └── data-demo.tsx#   api-client demo (pushed over tabs)
+│       │   ├── lib/            # app glue: theme.ts (THEME/NAV_THEME), env.ts,
+│       │   │                   #   api.ts, theme-storage.ts
 │       │   └── global.css      # SINGLE source of truth for theming (see below)
 │       ├── metro.config.js     # minimal; expo/metro-config handles the monorepo
 │       ├── babel.config.js     # explicit react-native-worklets/plugin (pnpm needs it)
@@ -65,7 +69,9 @@ NativeWind v5 + Tailwind v4 is **CSS-first** (no `tailwind.config.js`). Structur
 - **Radius tokens must be concrete rems** (`--radius-md: 0.5rem`), never `calc(var(--radius) - 2px)`. react-native-css doesn't resolve nested `calc(var())` on native → `rounded-*` collapses to 0 (square corners).
 - **`@source "../../../packages/ui/src/**/*.{ts,tsx}"`** must stay — workspace packages are symlinked and Tailwind won't scan them otherwise, so classes used only in `@repo/ui` get purged.
 
-Dark mode: NativeWind v5 maps `dark:` to `@media (prefers-color-scheme: dark)`. Toggle at runtime with `Appearance.setColorScheme()` (see `@repo/ui` ThemeToggle) — the `useColorScheme` hook from `nativewind` is deprecated; use the one from `react-native`.
+Dark mode: NativeWind v5 maps `dark:` to `@media (prefers-color-scheme: dark)`. Toggle at runtime with `Appearance.setColorScheme()` — the `useColorScheme` hook from `nativewind` is deprecated; use the one from `react-native`.
+
+**Theme preference (light/dark/system):** `@repo/ui/lib/theme-context` (`ThemeProvider` + `useThemePreference`) owns the persisted three-way choice. It calls `Appearance.setColorScheme(pref === "system" ? "unspecified" : pref)` — note RN 0.85's `ColorSchemeName` is `'light' | 'dark' | 'unspecified'` (NO `null`); "unspecified" is how you follow the OS. The provider is storage-agnostic via a `ThemeStorage` adapter; the app wires AsyncStorage in `lib/theme-storage.ts`. Wrap once in the root `_layout.tsx` (outermost, so the saved scheme is applied before the React Navigation theme reads `useColorScheme()`). The Settings screen's Appearance section is the UI for it; the simpler `ThemeToggle` (two-way, no persistence) still exists for quick in-screen toggles.
 
 ### ⚠️ Theme colors live in TWO places — keep them in sync
 
@@ -179,7 +185,6 @@ These do not exist in the repo yet. Do not assume their files/APIs are present; 
 
 - **`create-rnstack` CLI** — scaffold a new monorepo by project name in one command, installing deps and applying the fixes above automatically. MUST stay build-tool agnostic: never bake in an EAS/cloud account, keystore, or `projectId`/`owner`; the scaffold runs/builds locally out of the box and treats EAS as opt-in (developer runs `eas init` for their own account).
 - **Multi-app generation** — let the user choose how many apps to create under `apps/` at init time.
-- **Starter screens** — Home and Settings screens that almost every project needs, pre-wired.
 - **More skills** — additional task-specific skills beyond this project guide.
 
 When implementing roadmap items, keep them mobile-first, follow the conventions above, and add to/refresh this skill so it stays the accurate source of truth.
