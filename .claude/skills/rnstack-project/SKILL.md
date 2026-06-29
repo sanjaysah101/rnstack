@@ -191,6 +191,10 @@ Every package/app is independently versioned with **[Changesets](https://github.
 
 - `private: true` packages (`mobile`, root `rnstack`, `@repo/ui`, `@repo/api-client`, `@repo/config`) are **versioned but never published** — only `create-rnstack` publishes today. (The `@repo/*` packages would need a real npm scope before publishing; `@repo` is a workspace-internal placeholder.)
 - **Template-ref tag is separate from changeset tags.** The CLI's `TEMPLATE_REF` pins to a **repo-wide tag** (e.g. `v0.1.0`) marking the whole template snapshot. When cutting a CLI release: bump `create-rnstack`, push a matching `v<x.y.z>` repo tag, and set `TEMPLATE_REF` to it so the published CLI scaffolds that exact frozen template (not `main`).
+- **Every release tag must be documented** — don't push a bare tag:
+  - **Annotate** it with a multi-line description: `git tag -a v<x.y.z> -F <file>` (or a heredoc), not `git tag v<x.y.z>`.
+  - **Update CHANGELOGs** — `pnpm version` writes them from changesets; the root `CHANGELOG.md` + per-published-package `CHANGELOG.md` should always reflect what shipped.
+  - **Create a GitHub Release** from the tag: `gh release create v<x.y.z> --title ... --notes ...` so the Releases page is populated (a tag alone doesn't create a release).
 
 ## Scaffolding CLI — `create-rnstack` (`packages/create-rnstack`)
 
