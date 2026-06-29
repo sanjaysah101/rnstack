@@ -8,9 +8,9 @@ The point of rnstack is to skip the days normally lost to monorepo + NativeWind 
 quirks. Clone it, install, run — you get a working app with 30+ UI components, theming, and
 light/dark mode out of the box.
 
-> **Status:** working starter you can clone today. A `create-rnstack` CLI (scaffold by project
-> name, choose how many apps), an API layer with refresh-token auth, and prebuilt Home/Settings
-> screens are **planned** — see [Roadmap](#roadmap).
+> **Status:** working starter you can clone today, with a typed API layer (refresh-token auth,
+> TanStack Query) included. A `create-rnstack` CLI (scaffold by project name, choose how many
+> apps) and prebuilt Home/Settings screens are **planned** — see [Roadmap](#roadmap).
 
 ## Stack
 
@@ -24,6 +24,7 @@ apps/
   mobile/        Expo app (Expo Router) — the reference app
 packages/
   ui/            @repo/ui — React Native Reusables components, theme toggle, cn()
+  api-client/    @repo/api-client — http() + 401 refresh + pluggable auth + TanStack Query
   config/        @repo/config — shared tsconfig base + Biome config
 ```
 
@@ -155,6 +156,34 @@ npx @react-native-reusables/cli@latest add --all -y
 `rnstack-project` skill in [`.claude/skills/`](.claude/skills/rnstack-project/SKILL.md) for the
 full checklist.
 
+## Data fetching & auth (`@repo/api-client`)
+
+A typed HTTP client with single-flight **401-refresh-and-retry**, wired to **TanStack Query** —
+deliberately **auth-agnostic**. The client owns transport (base URL + `/v1`, JSON, error
+envelope, refresh on 401); it never owns auth. Auth is injected via an `AuthProvider`:
+
+```ts
+// apps/mobile/src/lib/api.ts — the app's configured client
+import { env } from "@/lib/env"; // Zod-validated; throws at startup if .env is missing/invalid
+
+export const api = createHttpClient({
+  baseUrl: env.EXPO_PUBLIC_API_BASE_URL,
+  auth: createJwtAuthProvider({ refreshUrl: `${env.EXPO_PUBLIC_API_BASE_URL}/v1/auth/refresh` }),
+});
+```
+
+The default provider stores JWT access/refresh tokens in **expo-secure-store**. Using **Clerk,
+Supabase, or Firebase** instead? Write a ~15-line `AuthProvider` that returns your SDK's token —
+the client, refresh, and retry plumbing stay identical. Screens call **query hooks, never
+`fetch`**. `ApiProvider` wraps the app in `app/_layout.tsx`.
+
+Requests are **cancellable** — pass an `AbortSignal` (`api.get("/x", { signal })`). Forward the
+signal TanStack Query provides so queries auto-cancel on unmount/refetch:
+`queryFn: ({ signal }) => api.get("/x", { signal })` (see `use-example-posts`).
+
+The `data-demo` screen + `use-example-posts` hook are a removable example pointed at a public API
+so a fresh clone shows live data — delete both when you wire your backend.
+
 ## Why pnpm `nodeLinker: hoisted`?
 
 `pnpm-workspace.yaml` sets `nodeLinker: hoisted`. pnpm's default isolated store loads two copies
@@ -167,7 +196,6 @@ Planned, not yet built:
 
 - **`create-rnstack` CLI** — scaffold a new monorepo by project name in one command.
 - **Multi-app generation** — choose how many apps to create under `apps/` at init.
-- **API layer** — minimal data fetching with refresh-token auth (TanStack Query).
 - **Starter screens** — Home and Settings, pre-wired.
 
 ## License
