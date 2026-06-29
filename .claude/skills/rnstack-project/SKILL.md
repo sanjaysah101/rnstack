@@ -194,7 +194,7 @@ Every package/app is independently versioned with **[Changesets](https://github.
 - **Every release tag must be documented** — don't push a bare tag:
   - **Annotate** it with a multi-line description: `git tag -a v<x.y.z> -F <file>` (or a heredoc), not `git tag v<x.y.z>`.
   - **Update CHANGELOGs** — `pnpm version` writes them from changesets; the root `CHANGELOG.md` + per-published-package `CHANGELOG.md` should always reflect what shipped.
-  - **Create a GitHub Release** from the tag: `gh release create v<x.y.z> --title ... --notes ...` so the Releases page is populated (a tag alone doesn't create a release).
+  - **Create a GitHub Release** from the tag so the Releases page is populated (a tag alone doesn't create a release). Use `gh release create v<x.y.z> --title ... --notes-file <path>` — pass a file, NOT `--notes -` with a heredoc (stdin silently lands a literal `-` as the body).
 
 ## Scaffolding CLI — `create-rnstack` (`packages/create-rnstack`)
 
