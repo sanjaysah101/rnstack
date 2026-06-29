@@ -86,6 +86,7 @@ A typed HTTP client + TanStack Query wiring that stays **auth-agnostic**. The de
 - **`AuthProvider`** (`auth/types.ts`) is the swap-in seam: `{ getAccessToken, refresh, onAuthError? }`. Ship the default **`createJwtAuthProvider({ refreshUrl })`** (`auth/jwt.ts`) — bearer access token in `expo-secure-store`, refresh against an endpoint. To use **Clerk / Supabase / Firebase**, write a ~15-line provider returning that SDK's token; transport/refresh plumbing is unchanged. Never hardcode an auth scheme into `http.ts`.
 - **`ApiProvider`** (`query.tsx`) wraps the app once (in `_layout.tsx`); `createQueryClient()` sets mobile defaults (no refetch-on-focus, retry 2, 30s stale).
 - App glue lives in `apps/mobile/src/lib/api.ts` (`createHttpClient` + `EXPO_PUBLIC_API_BASE_URL` + JWT provider). Screens call **query hooks, never `fetch` directly**.
+- **Cancellation:** `RequestOptions` extends `RequestInit`, so pass `signal` to cancel (`api.get(path, { signal })`). In hooks, forward TanStack Query's signal — `queryFn: ({ signal }) => api.get(path, { signal })` — so requests auto-cancel on unmount/refetch.
 - `hooks/use-example-posts.ts` + the `data-demo` route are a removable demo pointed at a public API so a fresh clone shows live data — delete both when wiring a real backend.
 
 ## Writing / editing RN Reusables components (native correctness)

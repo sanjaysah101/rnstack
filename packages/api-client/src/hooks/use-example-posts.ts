@@ -27,7 +27,10 @@ type PostsResponse = {
 export function useExamplePosts() {
   return useQuery({
     queryKey: ["example", "posts"],
-    queryFn: () => demoClient.get<PostsResponse>("/posts", { params: { limit: 10 } }),
+    // Forward TanStack Query's AbortSignal so the request auto-cancels on
+    // unmount / refetch (demonstrates the client's cancellation support).
+    queryFn: ({ signal }) =>
+      demoClient.get<PostsResponse>("/posts", { params: { limit: 10 }, signal }),
     select: (data) => data.posts,
   });
 }

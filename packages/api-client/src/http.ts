@@ -29,6 +29,16 @@ export type RequestOptions = Omit<RequestInit, "body"> & {
   json?: unknown;
   /** Query params appended to the URL. */
   params?: Record<string, string | number | boolean | null | undefined>;
+  /**
+   * Cancellation. Inherited from RequestInit and forwarded to fetch — pass an
+   * AbortSignal to cancel the request:
+   *   const ac = new AbortController();
+   *   api.get("/slow", { signal: ac.signal });
+   *   ac.abort(); // rejects with an AbortError
+   * With TanStack Query, forward the signal it provides so queries auto-cancel
+   * on unmount/refetch: `queryFn: ({ signal }) => api.get("/x", { signal })`.
+   */
+  signal?: RequestInit["signal"];
 };
 
 export type HttpClient = {

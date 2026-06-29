@@ -177,6 +177,10 @@ Supabase, or Firebase** instead? Write a ~15-line `AuthProvider` that returns yo
 the client, refresh, and retry plumbing stay identical. Screens call **query hooks, never
 `fetch`**. `ApiProvider` wraps the app in `app/_layout.tsx`.
 
+Requests are **cancellable** — pass an `AbortSignal` (`api.get("/x", { signal })`). Forward the
+signal TanStack Query provides so queries auto-cancel on unmount/refetch:
+`queryFn: ({ signal }) => api.get("/x", { signal })` (see `use-example-posts`).
+
 The `data-demo` screen + `use-example-posts` hook are a removable example pointed at a public API
 so a fresh clone shows live data — delete both when you wire your backend.
 
