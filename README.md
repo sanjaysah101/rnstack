@@ -8,10 +8,9 @@ The point of rnstack is to skip the days normally lost to monorepo + NativeWind 
 quirks. Clone it, install, run — you get a working app with 30+ UI components, theming, and
 light/dark mode out of the box.
 
-> **Status:** working starter you can clone today — tab navigation with **Home + Settings**
-> screens, light/dark/system theme (persisted), and a typed API layer (refresh-token auth,
-> TanStack Query). A `create-rnstack` CLI (scaffold by project name, choose how many apps) is
-> **planned** — see [Roadmap](#roadmap).
+> **Status:** scaffold a new project in one command with **`create-rnstack`**, or clone this repo
+> directly. Includes tab navigation (**Home + Settings**), light/dark/system theme (persisted), and
+> a typed API layer (refresh-token auth, TanStack Query).
 
 ## Stack
 
@@ -22,14 +21,24 @@ React Native Reusables · TypeScript 6 · pnpm + Turborepo · Biome · Node ≥ 
 
 ```
 apps/
-  mobile/        Expo app (Expo Router) — the reference app
+  mobile/             Expo app (Expo Router) — the reference app
 packages/
-  ui/            @repo/ui — React Native Reusables components, theme toggle, cn()
-  api-client/    @repo/api-client — http() + 401 refresh + pluggable auth + TanStack Query
-  config/        @repo/config — shared tsconfig base + Biome config
+  ui/                 @repo/ui — React Native Reusables components, theme toggle, cn()
+  api-client/         @repo/api-client — http() + 401 refresh + pluggable auth + TanStack Query
+  config/             @repo/config — shared tsconfig base + Biome config
+  create-rnstack/     the scaffolding CLI (published to npm as create-rnstack)
 ```
 
-## Getting started
+## Quick start (new project)
+
+```sh
+pnpm create rnstack my-app          # or: npx create-rnstack my-app
+```
+
+Scaffolds a fresh monorepo (pick app names + package manager), installs deps, and prints next
+steps. See [`packages/create-rnstack`](packages/create-rnstack/README.md) for flags.
+
+## Getting started (this repo)
 
 ```sh
 pnpm install
@@ -207,10 +216,11 @@ hoisting guarantees a single native runtime. This is Expo's recommended linker f
 
 ## Roadmap
 
-Planned, not yet built:
+The core starter, API layer, and scaffolding CLI are in place. Possible follow-ups:
 
-- **`create-rnstack` CLI** — scaffold a new monorepo by project name in one command.
-- **Multi-app generation** — choose how many apps to create under `apps/` at init.
+- Auth/login starter screens on top of the API layer
+- Pagination / infinite-query helpers in `@repo/api-client`
+- A web (Next.js) app target
 
 ## License
 

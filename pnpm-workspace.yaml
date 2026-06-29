@@ -2,6 +2,12 @@ packages:
   - "apps/*"
   - "packages/*"
 
+# esbuild (via tsup) needs its postinstall to build the native binary used to
+# bundle the create-rnstack CLI. Allowed explicitly (pnpm blocks build scripts
+# by default).
+onlyBuiltDependencies:
+  - esbuild
+
 # Flat node_modules (npm/yarn-style) instead of pnpm's isolated symlinked store.
 # React Native / Metro require a SINGLE physical copy of native singletons
 # (react-native, reanimated, worklets, react). pnpm's default isolated layout
@@ -28,3 +34,8 @@ overrides:
   react-native-worklets: "0.8.3"
   react-native-safe-area-context: "~5.7.0"
   react-native-screens: "4.25.2"
+
+# esbuild (via tsup) builds a native binary in its postinstall; needed to bundle
+# the create-rnstack CLI. pnpm blocks build scripts by default — allow this one.
+allowBuilds:
+  esbuild: true
