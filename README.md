@@ -60,7 +60,16 @@ Then open the app on a device/emulator (press `a` for Android, `i` for iOS, `w` 
 pnpm format      # biome format --write .
 pnpm lint        # turbo run lint
 pnpm typecheck   # turbo run typecheck
+pnpm changeset   # declare a version bump for any package you changed
 ```
+
+## Versioning
+
+Packages are versioned independently with [Changesets](https://github.com/changesets/changesets).
+For any change that should ship, run `pnpm changeset`, pick the affected package(s) and bump type,
+and commit the generated file. Releasing runs `pnpm version` (applies bumps + CHANGELOGs) then
+`pnpm release` (`changeset publish`). Only `create-rnstack` publishes to npm today; the app and
+`@repo/*` packages are versioned but private.
 
 ## Running & building
 

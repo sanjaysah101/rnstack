@@ -181,6 +181,17 @@ eas build --platform android --profile preview   # installable APK; prints a dow
 - Real check for native runtime issues: `cd apps/mobile && npx expo export --platform android --output-dir <tmp>` compiles the full bundle (catches resolution/CSS-compile errors a typecheck misses). For behavior, run on device with `npx expo start --clear`.
 - After babel/metro/resolver/linker changes, ALWAYS clear cache (`--clear`) — stale Metro cache masks fixes.
 
+## Versioning & releases — Changesets
+
+Every package/app is independently versioned with **[Changesets](https://github.com/changesets/changesets)** (config in `.changeset/`). Baseline is `0.1.0`. Workflow:
+
+1. **Per change:** run `pnpm changeset` — pick the affected package(s) and bump type (patch/minor/major), write a one-line summary. This drops a markdown file in `.changeset/`; commit it with your PR.
+2. **To release:** `pnpm version` (= `changeset version`) applies the bumps, updates each package's CHANGELOG, and removes the consumed changeset files. Commit the result.
+3. **To publish:** `pnpm release` builds `create-rnstack` and runs `changeset publish` (publishes non-private packages to npm + creates per-package git tags like `create-rnstack@0.1.0`).
+
+- `private: true` packages (`mobile`, root `rnstack`, `@repo/ui`, `@repo/api-client`, `@repo/config`) are **versioned but never published** — only `create-rnstack` publishes today. (The `@repo/*` packages would need a real npm scope before publishing; `@repo` is a workspace-internal placeholder.)
+- **Template-ref tag is separate from changeset tags.** The CLI's `TEMPLATE_REF` pins to a **repo-wide tag** (e.g. `v0.1.0`) marking the whole template snapshot. When cutting a CLI release: bump `create-rnstack`, push a matching `v<x.y.z>` repo tag, and set `TEMPLATE_REF` to it so the published CLI scaffolds that exact frozen template (not `main`).
+
 ## Scaffolding CLI — `create-rnstack` (`packages/create-rnstack`)
 
 A Node CLI (TypeScript → bundled with tsup; published to npm as `create-rnstack`) that scaffolds a new project: `pnpm create rnstack <name>` / `npx create-rnstack <name>`.
