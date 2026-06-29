@@ -11,7 +11,7 @@ function TabsList({ className, ...props }: React.ComponentProps<typeof TabsPrimi
   return (
     <TabsPrimitive.List
       className={cn(
-        "bg-muted flex h-9 flex-row items-center justify-center rounded-lg p-[3px]",
+        "bg-muted flex h-9 flex-row items-center justify-center rounded-lg p-0.75",
         Platform.select({ web: "inline-flex w-fit", native: "mr-auto" }),
         className
       )}

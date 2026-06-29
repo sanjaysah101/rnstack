@@ -125,6 +125,20 @@ component (`Appearance.setColorScheme()`).
 > - Radius tokens must be **concrete rems** (`0.5rem`), not `calc(var(--radius) - 2px)` —
 >   nested `calc(var())` collapses to 0 (square corners) on native.
 
+## Component gallery (test harness)
+
+Because RNR components were authored for **NativeWind v4** and rnstack runs **NativeWind v5
+(preview) + Tailwind v4**, every component must be verified on a real device. The app ships a
+**gallery** for exactly this:
+
+```sh
+pnpm start            # open in Expo Go, then tap "Browse component gallery"
+```
+
+Routes live in [`apps/mobile/src/app/gallery/`](apps/mobile/src/app/gallery) — an index grouped by
+risk tier (primitives → inputs → overlays) and one screen per component showing its variants/states,
+each with a `ThemeToggle` so you can check light/dark + flicker on the spot.
+
 ## Adding UI components
 
 Components come from the React Native Reusables CLI into `packages/ui`:
