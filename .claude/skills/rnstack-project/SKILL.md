@@ -43,8 +43,10 @@ rn-monorepo/
 │   │       ├── auth/jwt.ts     # default JWT + expo-secure-store provider
 │   │       ├── query.tsx       # ApiProvider + createQueryClient
 │   │       └── hooks/          # example query hooks (delete the example one)
-│   └── config/                 # @repo/config — shared tsconfig.base.json + biome.json
-├── pnpm-workspace.yaml         # workspaces + nodeLinker: hoisted + overrides
+│   ├── config/                 # @repo/config — shared tsconfig.base.json + biome.json
+│   └── create-rnstack/         # the scaffolding CLI (Node; published to npm)
+│       └── src/                # index.ts (orchestrator), apps.ts, fs-utils.ts
+├── pnpm-workspace.yaml         # workspaces + nodeLinker: hoisted + overrides + allowBuilds
 └── turbo.json                  # lint / typecheck / build / start / dev tasks
 ```
 
@@ -179,12 +181,24 @@ eas build --platform android --profile preview   # installable APK; prints a dow
 - Real check for native runtime issues: `cd apps/mobile && npx expo export --platform android --output-dir <tmp>` compiles the full bundle (catches resolution/CSS-compile errors a typecheck misses). For behavior, run on device with `npx expo start --clear`.
 - After babel/metro/resolver/linker changes, ALWAYS clear cache (`--clear`) — stale Metro cache masks fixes.
 
+## Scaffolding CLI — `create-rnstack` (`packages/create-rnstack`)
+
+A Node CLI (TypeScript → bundled with tsup; published to npm as `create-rnstack`) that scaffolds a new project: `pnpm create rnstack <name>` / `npx create-rnstack <name>`.
+
+- **Template source = THIS repo.** It fetches the repo via `tiged` (degit fork) at `TEMPLATE_REF` (pin to a release tag per published CLI version; `RNSTACK_TEMPLATE_REF` env overrides for local testing). There is no second template copy — what you build/test here is what users get.
+- Flow (`src/index.ts`): prompt/flags → tiged clone → strip `STRIP_PATHS` (`.claude`, `.turbo`, `.husky`, `packages/create-rnstack`) → rebrand (`replaceInTree` swaps `rnstack` → project name; `@repo/*` scope is untouched) → `generateApps` (fan out `apps/mobile` into N apps, each with its own package name + Expo name/slug/scheme) → install (inherits the template's pinned versions) → next steps.
+- Flags for non-interactive use: `--apps a,b`, `--pm <pnpm|npm|yarn|bun>`, `--no-install`, `-y`.
+- **Build-tool agnostic, enforced:** the scaffold MUST NOT carry an EAS/cloud account, keystore, or `projectId`/`owner` — those are per-developer (`eas init`). Don't add them to the template.
+- It's a **Node CLI**, not RN — its deps (`tiged`, `@clack/prompts`, `picocolors`, `tsup`) are plain Node packages; the "use `expo install`" rule does NOT apply to this package. `esbuild` (via tsup) is allow-listed in `pnpm-workspace.yaml` `allowBuilds`.
+- After changing the template structure (move/rename files, add an app-config field), re-test the CLI end-to-end and update `STRIP_PATHS` / `generateApps` if the assumptions changed.
+
 ## Roadmap — PLANNED, NOT YET BUILT
 
 These do not exist in the repo yet. Do not assume their files/APIs are present; if asked to use them, build them first or confirm scope.
 
-- **`create-rnstack` CLI** — scaffold a new monorepo by project name in one command, installing deps and applying the fixes above automatically. MUST stay build-tool agnostic: never bake in an EAS/cloud account, keystore, or `projectId`/`owner`; the scaffold runs/builds locally out of the box and treats EAS as opt-in (developer runs `eas init` for their own account).
-- **Multi-app generation** — let the user choose how many apps to create under `apps/` at init time.
+- **Auth/login starter screens** on top of `@repo/api-client`.
+- **Pagination / infinite-query helpers** in `@repo/api-client`.
+- **A web (Next.js) app target.**
 - **More skills** — additional task-specific skills beyond this project guide.
 
 When implementing roadmap items, keep them mobile-first, follow the conventions above, and add to/refresh this skill so it stays the accurate source of truth.

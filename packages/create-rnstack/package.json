@@ -1,0 +1,48 @@
+{
+  "name": "create-rnstack",
+  "version": "0.0.0",
+  "description": "Scaffold a new rnstack monorepo (Expo + Turborepo + NativeWind v5 + RN Reusables) in one command.",
+  "type": "module",
+  "bin": {
+    "create-rnstack": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "author": "Sanjay Kumar Sah",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sanjaysah101/rnstack",
+    "directory": "packages/create-rnstack"
+  },
+  "keywords": [
+    "react-native",
+    "expo",
+    "monorepo",
+    "starter",
+    "cli",
+    "create",
+    "rnstack"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint ."
+  },
+  "dependencies": {
+    "@clack/prompts": "^1.6.0",
+    "picocolors": "^1.1.1",
+    "tiged": "^2.12.8"
+  },
+  "devDependencies": {
+    "@repo/config": "workspace:*",
+    "@types/node": "^22.10.0",
+    "tsup": "^8.5.1",
+    "typescript": "6.0.3"
+  }
+}
