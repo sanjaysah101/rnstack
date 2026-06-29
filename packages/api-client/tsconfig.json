@@ -1,0 +1,13 @@
+{
+  "extends": "@repo/config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": ["esnext", "dom"],
+    "jsx": "react-jsx",
+    "paths": {
+      "@repo/api-client": ["./src/index.ts"],
+      "@repo/api-client/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}

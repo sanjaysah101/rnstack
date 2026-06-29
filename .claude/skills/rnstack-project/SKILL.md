@@ -32,6 +32,13 @@ rn-monorepo/
 │   │   │   ├── lib/utils.ts    # cn()
 │   │   │   └── index.ts        # barrel: re-exports lib/utils
 │   │   └── components.json     # RNR/shadcn CLI config (aliases point at @repo/ui)
+│   ├── api-client/             # @repo/api-client — http() + 401 refresh + TanStack Query
+│   │   └── src/
+│   │       ├── http.ts         # createHttpClient: /v1, error envelope, single-flight 401 retry
+│   │       ├── auth/types.ts   # AuthProvider interface (the swap-in seam)
+│   │       ├── auth/jwt.ts     # default JWT + expo-secure-store provider
+│   │       ├── query.tsx       # ApiProvider + createQueryClient
+│   │       └── hooks/          # example query hooks (delete the example one)
 │   └── config/                 # @repo/config — shared tsconfig.base.json + biome.json
 ├── pnpm-workspace.yaml         # workspaces + nodeLinker: hoisted + overrides
 └── turbo.json                  # lint / typecheck / build / start / dev tasks
@@ -71,6 +78,16 @@ Dark mode: NativeWind v5 maps `dark:` to `@media (prefers-color-scheme: dark)`. 
 
 They're duplicated because NativeWind (CSS variables) and React Navigation (a JS theme object) are separate systems — there is no single runtime value both consume. Treat `global.css` as the canonical palette and `theme.ts` as its hand-maintained JS copy. (A future improvement could generate `theme.ts` from the CSS tokens; until then it's manual.)
 
+## Data layer — `@repo/api-client`
+
+A typed HTTP client + TanStack Query wiring that stays **auth-agnostic**. The design principle: the client owns transport (base URL + `/v1`, JSON, error envelope, single-flight 401 refresh + retry); it never owns auth.
+
+- **`createHttpClient({ baseUrl, apiPrefix?, auth? })`** → `{ get, post, put, patch, delete, request }`, all generic over the response type. Throws `HttpError` (with `status` + parsed `body`) on non-2xx. On a 401 it calls `auth.refresh()` **once** for a burst of concurrent failures (single-flight), retries with the new token, and calls `auth.onAuthError()` if refresh fails.
+- **`AuthProvider`** (`auth/types.ts`) is the swap-in seam: `{ getAccessToken, refresh, onAuthError? }`. Ship the default **`createJwtAuthProvider({ refreshUrl })`** (`auth/jwt.ts`) — bearer access token in `expo-secure-store`, refresh against an endpoint. To use **Clerk / Supabase / Firebase**, write a ~15-line provider returning that SDK's token; transport/refresh plumbing is unchanged. Never hardcode an auth scheme into `http.ts`.
+- **`ApiProvider`** (`query.tsx`) wraps the app once (in `_layout.tsx`); `createQueryClient()` sets mobile defaults (no refetch-on-focus, retry 2, 30s stale).
+- App glue lives in `apps/mobile/src/lib/api.ts` (`createHttpClient` + `EXPO_PUBLIC_API_BASE_URL` + JWT provider). Screens call **query hooks, never `fetch` directly**.
+- `hooks/use-example-posts.ts` + the `data-demo` route are a removable demo pointed at a public API so a fresh clone shows live data — delete both when wiring a real backend.
+
 ## Writing / editing RN Reusables components (native correctness)
 
 RNR's published components target web patterns; several break only on device. Before editing a component, know these:
@@ -91,7 +108,7 @@ Full detail on these gotchas is also captured in the memory note `nativewind-v5-
 - **Styling:** Tailwind classes via `className`, composed with `cn()`. No inline `StyleSheet` unless a prop can't be expressed in Tailwind (e.g. the `includeFontPadding` case).
 - **Package names:** internal packages are scoped `@repo/*`. (When publishing, swap `@repo` for a real npm scope.)
 - **Tooling:** Biome (not ESLint/Prettier) — config in `@repo/config/biome.json`, 2-space indent, 100 col. Run `pnpm lint` / `pnpm typecheck` (Turbo) before committing. TypeScript `strict`, `moduleResolution: bundler`.
-- **Env vars:** public runtime config via `EXPO_PUBLIC_*` (already wired into `turbo.json` globalEnv as `EXPO_PUBLIC_API_BASE_URL`).
+- **Env vars:** all env access goes through ONE validated module — `apps/mobile/src/lib/env.ts` (Zod `safeParse` at import time; throws a clear error if a var is missing/invalid so misconfiguration fails fast). Never read `process.env` elsewhere — import `env` from there. Add a new var by extending the schema, `.env.example`, and `turbo.json` globalEnv. Public runtime config uses the `EXPO_PUBLIC_*` prefix. **Expo gotcha:** Metro statically inlines `EXPO_PUBLIC_*` at build time, so each must be referenced as a literal `process.env.EXPO_PUBLIC_FOO` (the schema input object does this) — never dynamic (`process.env[key]`), which breaks inlining.
 - **Expo SDK 56:** read the versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing Expo-specific code (per `apps/mobile/AGENTS.md`).
 
 ## How to add things
@@ -161,7 +178,6 @@ These do not exist in the repo yet. Do not assume their files/APIs are present; 
 
 - **`create-rnstack` CLI** — scaffold a new monorepo by project name in one command, installing deps and applying the fixes above automatically. MUST stay build-tool agnostic: never bake in an EAS/cloud account, keystore, or `projectId`/`owner`; the scaffold runs/builds locally out of the box and treats EAS as opt-in (developer runs `eas init` for their own account).
 - **Multi-app generation** — let the user choose how many apps to create under `apps/` at init time.
-- **API layer** — minimal data-fetching with **refresh-token** auth logic (token storage, refresh-on-401 interceptor). TanStack Query is the intended data layer (already referenced in the root package description).
 - **Starter screens** — Home and Settings screens that almost every project needs, pre-wired.
 - **More skills** — additional task-specific skills beyond this project guide.
 

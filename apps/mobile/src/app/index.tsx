@@ -20,8 +20,8 @@ import { Input } from "@repo/ui/components/ui/input";
 import { Label } from "@repo/ui/components/ui/label";
 import { Text } from "@repo/ui/components/ui/text";
 import { ThemeToggle } from "@repo/ui/components/ui/theme-toggle";
-import { useRouter } from "expo-router";
-import { LayoutGrid, Rocket } from "lucide-react-native";
+import { type Href, useRouter } from "expo-router";
+import { Database, LayoutGrid } from "lucide-react-native";
 import { ScrollView, View } from "react-native";
 
 function DialogPreview() {
@@ -125,16 +125,13 @@ export default function Index() {
         <ThemeToggle />
       </View>
       <Text className="text-xl font-bold text-foreground">React Native Reusables</Text>
-      <Button onPress={() => router.push("/gallery")}>
+      <Button onPress={() => router.push("/gallery" as Href)}>
         <Icon as={LayoutGrid} className="text-primary-foreground" />
         <Text>Browse component gallery</Text>
       </Button>
-      <Button variant="outline">
-        <Icon as={Rocket} />
-        <Text>Get started</Text>
-      </Button>
-      <Button>
-        <Text>Button</Text>
+      <Button variant="outline" onPress={() => router.push("/data-demo" as Href)}>
+        <Icon as={Database} className="text-foreground" />
+        <Text>Data fetching demo</Text>
       </Button>
       <DialogPreview />
       <AccordionPreview />

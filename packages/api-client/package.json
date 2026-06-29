@@ -1,0 +1,36 @@
+{
+  "name": "@repo/api-client",
+  "version": "0.0.0",
+  "description": "Typed HTTP client with single-flight 401 refresh and a pluggable AuthProvider, plus TanStack Query wiring.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./query": "./src/query.tsx",
+    "./auth/*": "./src/auth/*.ts",
+    "./hooks/*": "./src/hooks/*.ts",
+    "./*": "./src/*.ts"
+  },
+  "author": "Sanjay Kumar Sah",
+  "license": "ISC",
+  "type": "module",
+  "scripts": {
+    "lint": "biome lint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.101.2"
+  },
+  "peerDependencies": {
+    "expo-secure-store": "*",
+    "react": "*",
+    "react-native": "*"
+  },
+  "devDependencies": {
+    "@repo/config": "workspace:*",
+    "@types/react": "~19.2.17",
+    "expo-secure-store": "~56.0.4",
+    "react": "19.2.3",
+    "react-native": "0.85.3"
+  }
+}
