@@ -25,7 +25,16 @@ const TEMPLATE_REPO = "sanjaysah101/rnstack";
 const TEMPLATE_REF = process.env.RNSTACK_TEMPLATE_REF ?? "v0.1.0";
 
 // Paths inside the template that must NOT end up in a scaffolded project.
-const STRIP_PATHS = [".claude", ".turbo", ".husky", "packages/create-rnstack"];
+// CHANGELOGs document rnstack's own history — a new project starts fresh.
+const STRIP_PATHS = [
+  ".claude",
+  ".turbo",
+  ".husky",
+  "packages/create-rnstack",
+  "CHANGELOG.md",
+  "packages/ui/CHANGELOG.md",
+  "packages/api-client/CHANGELOG.md",
+];
 
 type PackageManager = "pnpm" | "npm" | "yarn" | "bun";
 
@@ -38,14 +47,46 @@ function isValidName(name: string | undefined): boolean {
   return !!name && /^[a-z0-9][a-z0-9-]*$/.test(name);
 }
 
-async function run(cmd: string, args: string[], cwd: string): Promise<void> {
+/**
+ * Run a command. `shell` defaults to false; pass true ONLY for package managers
+ * on Windows (they resolve via `.cmd` shims and need a shell). Never use shell
+ * for `git` — with shell:true on Windows, args containing spaces (the commit
+ * message) get re-split by the shell and the command fails.
+ */
+async function run(cmd: string, args: string[], cwd: string, shell = false): Promise<void> {
   await new Promise<void>((resolvePromise, reject) => {
-    const child = spawn(cmd, args, { cwd, stdio: "ignore", shell: process.platform === "win32" });
+    const child = spawn(cmd, args, { cwd, stdio: "ignore", shell });
     child.on("error", reject);
     child.on("close", (code) =>
       code === 0 ? resolvePromise() : reject(new Error(`${cmd} exited with code ${code}`))
     );
   });
+}
+
+/** Like `run`, but resolves to false on failure instead of throwing. */
+async function tryRun(cmd: string, args: string[], cwd: string): Promise<boolean> {
+  try {
+    await run(cmd, args, cwd);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Initialize a fresh git repo with a single initial commit. Skips silently if
+ * git is unavailable or the target is already inside a repo (e.g. scaffolding
+ * into an existing workspace).
+ */
+async function initGit(cwd: string): Promise<boolean> {
+  if (await tryRun("git", ["rev-parse", "--is-inside-work-tree"], cwd)) {
+    return false; // already in a git repo — don't nest
+  }
+  if (!(await tryRun("git", ["init"], cwd))) {
+    return false; // git not available
+  }
+  await tryRun("git", ["add", "-A"], cwd);
+  return tryRun("git", ["commit", "-m", "Initial commit from create-rnstack"], cwd);
 }
 
 /** Parse `--flag value` / `--flag=value` / `--no-flag` / `-y` from argv. */
@@ -198,7 +239,8 @@ async function main() {
   if (doInstall) {
     s.start(`Installing dependencies with ${pm}`);
     try {
-      await run(pm, ["install"], targetDir);
+      // Package managers resolve via .cmd shims on Windows — needs a shell.
+      await run(pm, ["install"], targetDir, process.platform === "win32");
       s.stop("Dependencies installed");
     } catch (err) {
       s.stop("Install failed — you can run it manually");
@@ -206,7 +248,14 @@ async function main() {
     }
   }
 
-  // 10. Next steps
+  // 10. Initialize a fresh git repo (unless --no-git)
+  if (flags.git !== false) {
+    s.start("Initializing git repository");
+    const ok = await initGit(targetDir);
+    s.stop(ok ? "Git repository initialized" : "Skipped git init");
+  }
+
+  // 11. Next steps
   const firstApp = appNames[0];
   note(
     [
