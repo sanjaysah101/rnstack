@@ -12,7 +12,7 @@
     "format:check": "biome format .",
     "clean": "turbo run clean && rm -rf node_modules",
     "changeset": "changeset",
-    "version": "changeset version",
+    "version-packages": "changeset version",
     "release": "turbo run build --filter=create-rnstack && changeset publish",
     "prepare": "husky"
   },

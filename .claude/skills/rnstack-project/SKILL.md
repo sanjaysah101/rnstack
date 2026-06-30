@@ -185,10 +185,12 @@ eas build --platform android --profile preview   # installable APK; prints a dow
 
 Every package/app is independently versioned with **[Changesets](https://github.com/changesets/changesets)** (config in `.changeset/`). Baseline is `0.1.0`. This repo uses the **version-on-`main`** flow — the CHANGELOG is written at release time, NOT in the feature PR.
 
-> **A feature PR commits only a `.changeset/*.md` declaration — NOT a CHANGELOG edit. This is correct, not a bug.** The changelog is a separate generated artifact produced later by `pnpm version`. Seeing `.changeset/` in the diff (and no CHANGELOG change) is the expected, intended state for a PR.
+> **A feature PR commits only a `.changeset/*.md` declaration — NOT a CHANGELOG edit. This is correct, not a bug.** The changelog is a separate generated artifact produced later by `pnpm version-packages`. Seeing `.changeset/` in the diff (and no CHANGELOG change) is the expected, intended state for a PR.
 
-1. **Per change (feature branch / PR):** run `pnpm changeset` — pick the affected package(s) and bump type (patch/minor/major), write a one-line summary. This drops a markdown file in `.changeset/`; commit **that file** with your PR. Do **not** run `pnpm version` here.
-2. **To release (on `main`, after merge):** `pnpm version` (= `changeset version`) consumes the changeset files — applies the version bumps, **writes/updates each package's CHANGELOG**, and deletes the consumed `.changeset/*.md`. Commit this release commit to `main`.
+> **Use `pnpm version-packages`, NOT `pnpm version`.** `version` is a built-in pnpm command (it shadows the package.json script and demands a semver arg → `ERR_PNPM_INVALID_VERSION_BUMP`). The release script is named `version-packages` to avoid that clash.
+
+1. **Per change (feature branch / PR):** run `pnpm changeset` — pick the affected package(s) and bump type (patch/minor/major), write a one-line summary. This drops a markdown file in `.changeset/`; commit **that file** with your PR. Do **not** version here.
+2. **To release (on `main`, after merge):** `pnpm version-packages` (= `changeset version`) consumes the changeset files — applies the version bumps, **writes/updates each package's CHANGELOG**, and deletes the consumed `.changeset/*.md`. Commit this release commit to `main`.
 3. **To publish:** `pnpm release` builds `create-rnstack` and runs `changeset publish` (publishes non-private packages to npm + creates per-package git tags like `create-rnstack@0.1.0`).
 
 - `private: true` packages (`mobile`, root `rnstack`, `@repo/ui`, `@repo/api-client`, `@repo/config`) are **versioned but never published** — only `create-rnstack` publishes today. (The `@repo/*` packages would need a real npm scope before publishing; `@repo` is a workspace-internal placeholder.)

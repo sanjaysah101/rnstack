@@ -1,6 +1,6 @@
 {
   "name": "create-rnstack",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Scaffold a new rnstack monorepo (Expo + Turborepo + NativeWind v5 + RN Reusables) in one command.",
   "type": "module",
   "bin": {
