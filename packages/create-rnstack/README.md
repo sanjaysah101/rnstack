@@ -42,6 +42,9 @@ create-rnstack my-app --apps mobile,web --pm bun --no-install
 
 ## Notes
 
+- Scaffolded projects include an `AGENTS.md` at the root — vendor-neutral context for AI coding
+  agents (Claude Code, Cursor, Copilot, Zed, Aider, …) so they understand the project's
+  conventions and native gotchas from the start.
 - The template is pinned to a release ref for reproducibility. Set
   `RNSTACK_TEMPLATE_REF=<branch|tag>` to override (used for local development).
 - Requires Node ≥ 20 and network access to fetch the template.
