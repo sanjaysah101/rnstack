@@ -16,6 +16,7 @@ npx create-rnstack my-app
 3. Rebrands the project to your chosen name.
 4. Generates the app(s) you ask for under `apps/` (each with its own name/slug/scheme).
 5. Installs dependencies (inheriting the template's tested versions).
+6. Initializes a fresh git repo with an initial commit.
 
 ## Usage
 
@@ -28,6 +29,7 @@ create-rnstack [project-name] [options]
 | `--apps <a,b,...>` | Comma-separated app names to create under `apps/` (default: `mobile`). |
 | `--pm <pnpm\|npm\|yarn\|bun>` | Package manager (default: `pnpm`). |
 | `--no-install` | Skip dependency installation. |
+| `--no-git` | Skip git init + initial commit. |
 | `-y` | Accept all defaults (non-interactive). |
 
 Examples:
