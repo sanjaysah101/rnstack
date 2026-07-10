@@ -205,11 +205,15 @@ Every package/app is independently versioned with **[Changesets](https://github.
 A Node CLI (TypeScript → bundled with tsup; published to npm as `create-rnstack`) that scaffolds a new project: `pnpm create rnstack <name>` / `npx create-rnstack <name>`.
 
 - **Template source = THIS repo.** It fetches the repo via `tiged` (degit fork) at `TEMPLATE_REF` (pin to a release tag per published CLI version; `RNSTACK_TEMPLATE_REF` env overrides for local testing). There is no second template copy — what you build/test here is what users get.
-- Flow (`src/index.ts`): prompt/flags → tiged clone → strip `STRIP_PATHS` (`.claude`, `.turbo`, `.husky`, `packages/create-rnstack`) → rebrand (`replaceInTree` swaps `rnstack` → project name; `@repo/*` scope is untouched) → `generateApps` (fan out `apps/mobile` into N apps, each with its own package name + Expo name/slug/scheme) → install (inherits the template's pinned versions) → next steps.
-- Flags for non-interactive use: `--apps a,b`, `--pm <pnpm|npm|yarn|bun>`, `--no-install`, `-y`.
-- **Build-tool agnostic, enforced:** the scaffold MUST NOT carry an EAS/cloud account, keystore, or `projectId`/`owner` — those are per-developer (`eas init`). Don't add them to the template.
-- It's a **Node CLI**, not RN — its deps (`tiged`, `@clack/prompts`, `picocolors`, `tsup`) are plain Node packages; the "use `expo install`" rule does NOT apply to this package. `esbuild` (via tsup) is allow-listed in `pnpm-workspace.yaml` `allowBuilds`.
-- After changing the template structure (move/rename files, add an app-config field), re-test the CLI end-to-end and update `STRIP_PATHS` / `generateApps` if the assumptions changed.
+- Flow (`src/index.ts`): prompt/flags → tiged clone → strip `STRIP_PATHS` → rebrand (`replaceInTree` swaps `rnstack` → project name; `@repo/*` scope untouched) → `configureRootMetadata` (reset root package.json — see below) → `writeGeneratedReadme` → `generateApps` (fan out `apps/mobile` into N apps: package name, Expo name/slug/scheme, **native bundle IDs** `<prefix>.<app>`) → `stripDemos` unless `--demo` → install → git init → next steps.
+- **Modules:** `apps.ts` (fan-out + bundle IDs), `metadata.ts` (root package.json reset), `demo.ts` (+ `templates/no-demo/*` overrides for Home/Settings/api-client index), `readme.ts` (attribution).
+- Flags: `--apps a,b`, `--pm <pnpm|npm|yarn|bun>`, `--bundle-id-prefix com.acme` (default `com.<project>`), `--demo` (include gallery/data-demo; **off by default**), `--no-install`, `--no-git`, `-y`.
+- **`STRIP_PATHS`** removes `.claude`, `.turbo`, `.husky/_` (NOT `.husky/pre-commit` — that ships), `packages/create-rnstack`, and all CHANGELOGs.
+- **Demos are opt-in.** Default scaffolds are production-first (no gallery/data-demo/example hook). `stripDemos` deletes those files AND overwrites Home/Settings/api-client-index with demo-free copies from `templates/no-demo/` (kept in the CLI, not markers in the template). If you change those 3 template files, update the overrides too.
+- **Root metadata reset** (`metadata.ts`): the blind `rnstack→name` rename corrupts starter-owned fields, so after renaming, the root package.json is reset — `private:true`, empty description/keywords, no `repository`, and the scaffold-only scripts (`changeset`/`version-packages`/`release`) removed. Keep that `SCAFFOLD_ONLY_SCRIPTS` list in sync if you add root scripts that shouldn't ship.
+- **Build-tool agnostic, enforced:** the scaffold MUST NOT carry an EAS/cloud account, keystore, or `projectId`/`owner` — those are per-developer (`eas init`).
+- It's a **Node CLI**, not RN — its deps (`tiged`, `@clack/prompts`, `picocolors`, `tsup`) are plain Node packages; the "use `expo install`" rule does NOT apply to this package. `esbuild` (via tsup) is allow-listed in `pnpm-workspace.yaml` `allowBuilds`. `templates/` must be in the package `files` array so overrides ship.
+- After changing the template structure, re-test the CLI end-to-end and update `STRIP_PATHS` / `generateApps` / `demo.ts` overrides if the assumptions changed.
 
 ## Roadmap — PLANNED, NOT YET BUILT
 
