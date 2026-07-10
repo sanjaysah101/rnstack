@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
-import { join, resolve } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   cancel,
   confirm,
@@ -16,7 +17,15 @@ import {
 import pc from "picocolors";
 import tiged from "tiged";
 import { generateApps } from "./apps.js";
+import { stripDemos } from "./demo.js";
 import { removePath, replaceInTree } from "./fs-utils.js";
+import { configureRootMetadata } from "./metadata.js";
+import { writeGeneratedReadme } from "./readme.js";
+
+// CLI version (from package.json), shown in the intro so users know what they ran.
+const CLI_VERSION: string = JSON.parse(
+  readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8")
+).version;
 
 // The template is this repo. Pinned to a release tag for reproducible scaffolds
 // (bump this when cutting a new template release). Override with
@@ -29,7 +38,9 @@ const TEMPLATE_REF = process.env.RNSTACK_TEMPLATE_REF ?? "v0.1.1";
 const STRIP_PATHS = [
   ".claude",
   ".turbo",
-  ".husky",
+  // Keep .husky/pre-commit (ships to the project); drop only husky's generated
+  // internals — `prepare: husky` recreates them on install.
+  ".husky/_",
   "packages/create-rnstack",
   "CHANGELOG.md",
   "packages/ui/CHANGELOG.md",
@@ -120,7 +131,7 @@ function parseFlags(argv: string[]) {
 }
 
 async function main() {
-  intro(pc.bgCyan(pc.black(" create-rnstack ")));
+  intro(`${pc.bgCyan(pc.black(" create-rnstack "))} ${pc.dim(`v${CLI_VERSION}`)}`);
 
   const { flags, positionals } = parseFlags(process.argv.slice(2));
   const yes = flags.yes === true;
@@ -197,6 +208,48 @@ async function main() {
     pm = pmAnswer as PackageManager;
   }
 
+  // 3b. Bundle identifier prefix (--bundle-id-prefix or prompt; default com.<project>)
+  const defaultPrefix = `com.${name.replace(/[^a-z0-9]/gi, "").toLowerCase()}`;
+  const isValidPrefix = (v: string | undefined) =>
+    !!v && /^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$/.test(v);
+  let bundleIdPrefix: string;
+  const prefixFlag = flags["bundle-id-prefix"];
+  if (typeof prefixFlag === "string" || yes) {
+    bundleIdPrefix = typeof prefixFlag === "string" ? prefixFlag : defaultPrefix;
+    if (!isValidPrefix(bundleIdPrefix)) {
+      exit(`Invalid --bundle-id-prefix "${bundleIdPrefix}" (e.g. com.acme).`);
+    }
+  } else {
+    const answer = await text({
+      message: "Bundle identifier prefix?",
+      placeholder: defaultPrefix,
+      defaultValue: defaultPrefix,
+      validate: (v) =>
+        isValidPrefix(v || defaultPrefix) ? undefined : "Reverse-DNS, e.g. com.acme",
+    });
+    if (isCancel(answer)) {
+      exit("Cancelled.");
+    }
+    bundleIdPrefix = answer || defaultPrefix;
+  }
+
+  // 3c. Include demo content? (--demo to include; default NO — production-first)
+  let includeDemos: boolean;
+  if (flags.demo === true) {
+    includeDemos = true;
+  } else if (flags.demo === false || yes) {
+    includeDemos = false;
+  } else {
+    const answer = await confirm({
+      message: "Include demo content (component gallery + data-fetching demo)?",
+      initialValue: false,
+    });
+    if (isCancel(answer)) {
+      exit("Cancelled.");
+    }
+    includeDemos = answer;
+  }
+
   // 4. Install now? (--no-install to skip; -y installs)
   let doInstall: boolean;
   if (flags.install === false) {
@@ -228,11 +281,19 @@ async function main() {
   await Promise.all(STRIP_PATHS.map((p) => removePath(join(targetDir, p))));
   s.stop("Cleaned up");
 
-  // 7. Rebrand: replace the rnstack project name with the new one
+  // 7. Rebrand: replace the rnstack project name across source, then reset the
+  //    root package.json metadata the blind rename corrupts (repo URL, keywords,
+  //    release scripts) and write a project-specific README with attribution.
   s.start("Configuring project");
   await replaceInTree(targetDir, [["rnstack", name]]);
-  // 8. Generate the requested apps
-  await generateApps(targetDir, appNames);
+  await configureRootMetadata(targetDir, name);
+  await writeGeneratedReadme(targetDir, name, CLI_VERSION);
+  // 8. Generate the requested apps (unique name/slug/scheme + native bundle IDs)
+  await generateApps(targetDir, appNames, bundleIdPrefix);
+  // 9. Remove demo/reference content unless the user opted in
+  if (!includeDemos) {
+    await stripDemos(targetDir, appNames);
+  }
   s.stop("Project configured");
 
   // 9. Install

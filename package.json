@@ -11,10 +11,12 @@
     "format": "biome format --write .",
     "format:check": "biome format .",
     "clean": "turbo run clean && rm -rf node_modules",
+    "doctor": "turbo run doctor",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "turbo run build --filter=create-rnstack && changeset publish",
-    "prepare": "husky"
+    "prepare": "husky",
+    "postinstall": "turbo run doctor || echo \"\\nExpo dependency check reported issues — run 'npx expo install --fix' in the affected app.\""
   },
   "keywords": [
     "react-native",
