@@ -39,11 +39,11 @@
   },
   "packageManager": "pnpm@11.9.0",
   "devDependencies": {
-    "@biomejs/biome": "2.5.1",
+    "@biomejs/biome": "2.5.8",
     "@changesets/cli": "^2.31.0",
     "@repo/config": "workspace:*",
     "husky": "9.1.7",
-    "turbo": "2.10.0",
+    "turbo": "2.10.10",
     "typescript": "6.0.3"
   }
 }

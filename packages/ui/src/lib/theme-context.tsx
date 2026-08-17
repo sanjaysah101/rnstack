@@ -17,7 +17,7 @@ export type ThemeStorage = {
 const STORAGE_KEY = "rnstack.theme-preference";
 
 function applyPreference(pref: ThemePreference) {
-  // "unspecified" = follow the OS (RN 0.85's ColorSchemeName has no null);
+  // "unspecified" = follow the OS (RN 0.86's ColorSchemeName has no null);
   // NativeWind's `dark:` variant reacts to the resulting scheme.
   Appearance.setColorScheme(pref === "system" ? "unspecified" : pref);
 }
