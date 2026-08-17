@@ -22,6 +22,9 @@ nodeLinker: hoisted
 # Pin a single version across the workspace.
 # https://www.nativewind.dev/v5/getting-started/installation#5-override-the-lightningcss-version
 overrides:
+  # expo-router wants @expo/metro-runtime ^57.0.11 but the store caches 57.0.10;
+  # force it (the exclude above approves it past the release-age gate).
+  "@expo/metro-runtime": "57.0.11"
   lightningcss: "1.30.1"
   # tiged (create-rnstack) pulls tar@^6, whose 6.x line has unpatched node-tar
   # advisories (arbitrary file overwrite / DoS). Force the patched 7.5.x. This is
@@ -44,3 +47,20 @@ overrides:
 # the create-rnstack CLI. pnpm blocks build scripts by default — allow this one.
 allowBuilds:
   esbuild: true
+
+# pnpm's minimumReleaseAge supply-chain gate rejects packages published very
+# recently. Expo ships SDK patches quickly, so freshly-released expo-* versions
+# get blocked; list them here to approve them past the gate. `expo install --fix`
+# maintains this automatically.
+minimumReleaseAgeExclude:
+  - '@expo/cli@57.0.16'
+  - '@expo/config@57.0.8'
+  - '@expo/fingerprint@0.20.8'
+  - '@expo/inline-modules@0.1.6'
+  - '@expo/log-box@57.0.3'
+  - '@expo/metro-runtime@57.0.11'
+  - expo-asset@57.0.12
+  - expo-constants@57.0.12
+  - expo@57.0.14
+  - expo-router@57.0.14
+  - expo-splash-screen@57.0.7
