@@ -14,7 +14,7 @@ light/dark mode out of the box.
 
 ## Stack
 
-Expo SDK 56 (New Architecture, RN 0.85) · Expo Router · NativeWind v5 (Tailwind v4) ·
+Expo SDK 57 (New Architecture, RN 0.86) · Expo Router · NativeWind v5 (Tailwind v4) ·
 React Native Reusables · TypeScript 6 · pnpm + Turborepo · Biome · Node ≥ 22.13.
 
 ## Layout
@@ -48,10 +48,10 @@ pnpm start                           # turbo run start → expo start
 
 Then open the app on a device/emulator (press `a` for Android, `i` for iOS, `w` for web).
 
-> ### ⚠️ Expo Go & SDK 56
-> This project targets **Expo SDK 56**. The Expo Go in the app stores may not be updated for
-> SDK 56 yet (*"Project is incompatible with this version of Expo Go"*). Install the SDK-56
-> build directly from Expo: **https://expo.dev/go?sdkVersion=56&platform=android&device=true**,
+> ### ⚠️ Expo Go & SDK 57
+> This project targets **Expo SDK 57**. The Expo Go in the app stores may not be updated for
+> SDK 57 yet (*"Project is incompatible with this version of Expo Go"*). Install the SDK-57
+> build directly from Expo: **https://expo.dev/go?sdkVersion=57&platform=android&device=true**,
 > or build a dev client (`eas build --profile development`), or run in the browser (`w`).
 
 ## Quality gate (run before committing)
@@ -82,7 +82,7 @@ path that fits you.
 pnpm start            # turbo run start → expo start; press a / i / w
 ```
 
-Runs in Expo Go (SDK 56 — see the note above) or the browser. This is all most contributors need.
+Runs in Expo Go (SDK 57 — see the note above) or the browser. This is all most contributors need.
 
 ### 2. Local native build (you have Android Studio / Xcode)
 

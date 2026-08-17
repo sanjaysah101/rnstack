@@ -16,7 +16,7 @@ Primary target is **native (iOS/Android)**. Web works but is secondary — never
 ```
 rn-monorepo/
 ├── apps/
-│   └── mobile/                 # Expo app (expo-router, SDK 56)
+│   └── mobile/                 # Expo app (expo-router, SDK 57)
 │       ├── src/
 │       │   ├── app/            # expo-router routes
 │       │   │   ├── (tabs)/      #   Home (index) + Settings tab group
@@ -73,7 +73,7 @@ NativeWind v5 + Tailwind v4 is **CSS-first** (no `tailwind.config.js`). Structur
 
 Dark mode: NativeWind v5 maps `dark:` to `@media (prefers-color-scheme: dark)`. Toggle at runtime with `Appearance.setColorScheme()` — the `useColorScheme` hook from `nativewind` is deprecated; use the one from `react-native`.
 
-**Theme preference (light/dark/system):** `@repo/ui/lib/theme-context` (`ThemeProvider` + `useThemePreference`) owns the persisted three-way choice. It calls `Appearance.setColorScheme(pref === "system" ? "unspecified" : pref)` — note RN 0.85's `ColorSchemeName` is `'light' | 'dark' | 'unspecified'` (NO `null`); "unspecified" is how you follow the OS. The provider is storage-agnostic via a `ThemeStorage` adapter; the app wires AsyncStorage in `lib/theme-storage.ts`. Wrap once in the root `_layout.tsx` (outermost, so the saved scheme is applied before the React Navigation theme reads `useColorScheme()`). The Settings screen's Appearance section is the UI for it; the simpler `ThemeToggle` (two-way, no persistence) still exists for quick in-screen toggles.
+**Theme preference (light/dark/system):** `@repo/ui/lib/theme-context` (`ThemeProvider` + `useThemePreference`) owns the persisted three-way choice. It calls `Appearance.setColorScheme(pref === "system" ? "unspecified" : pref)` — note RN 0.86's `ColorSchemeName` is `'light' | 'dark' | 'unspecified'` (NO `null`); "unspecified" is how you follow the OS. The provider is storage-agnostic via a `ThemeStorage` adapter; the app wires AsyncStorage in `lib/theme-storage.ts`. Wrap once in the root `_layout.tsx` (outermost, so the saved scheme is applied before the React Navigation theme reads `useColorScheme()`). The Settings screen's Appearance section is the UI for it; the simpler `ThemeToggle` (two-way, no persistence) still exists for quick in-screen toggles.
 
 ### ⚠️ Theme colors live in TWO places — keep them in sync
 
@@ -106,6 +106,8 @@ RNR's published components target web patterns; several break only on device. Be
 - **Web-only utilities** (`hover:`, `focus-visible:`, `ring-*`, `outline-none`, `transition-*`, `select-text`, `scroll-m-*`) belong inside `Platform.select({ web: ... })`. They are no-ops on native and clutter the native style.
 - Always test components **on a device/emulator**, not just web — web rendering is not representative.
 
+**Forked-for-v5 components (kept in sync with upstream).** Four RNR components are patched for NativeWind v5 and will drift as RNR ships updates: `icon.tsx` (`cssInterop`→`styled`), `input.tsx` (Android clip fix), `textarea.tsx` (placeholder via `placeholder:` utility), `select.tsx` (native width via `triggerPosition.width`). When re-importing RNR or bumping its version, follow the re-import + re-apply ritual in `docs/rnr-sync.md` and re-apply those four. `button.tsx` etc. are NOT forked — don't invent changes there.
+
 Full detail on these gotchas is also captured in the memory note `nativewind-v5-native-gotchas`.
 
 ## Conventions
@@ -118,7 +120,16 @@ Full detail on these gotchas is also captured in the memory note `nativewind-v5-
 - **Package names:** internal packages are scoped `@repo/*`. (When publishing, swap `@repo` for a real npm scope.)
 - **Tooling:** Biome (not ESLint/Prettier) — config in `@repo/config/biome.json`, 2-space indent, 100 col. Run `pnpm lint` / `pnpm typecheck` (Turbo) before committing. TypeScript `strict`, `moduleResolution: bundler`.
 - **Env vars:** all env access goes through ONE validated module — `apps/mobile/src/lib/env.ts` (Zod `safeParse` at import time; throws a clear error if a var is missing/invalid so misconfiguration fails fast). Never read `process.env` elsewhere — import `env` from there. Add a new var by extending the schema, `.env.example`, and `turbo.json` globalEnv. Public runtime config uses the `EXPO_PUBLIC_*` prefix. **Expo gotcha:** Metro statically inlines `EXPO_PUBLIC_*` at build time, so each must be referenced as a literal `process.env.EXPO_PUBLIC_FOO` (the schema input object does this) — never dynamic (`process.env[key]`), which breaks inlining.
-- **Expo SDK 56:** read the versioned docs at https://docs.expo.dev/versions/v56.0.0/ before writing Expo-specific code (per `apps/mobile/AGENTS.md`).
+- **Expo SDK 57:** read the versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing Expo-specific code (per `apps/mobile/AGENTS.md`).
+
+### Upgrading the Expo SDK (gotchas learned on 56→57)
+
+- **Get the exact RN-family versions from Expo's `bundledNativeModules.json`, NOT `npm @latest`.** For a target SDK: `https://raw.githubusercontent.com/expo/expo/sdk-<N>/packages/expo/bundledNativeModules.json`. `@latest` is often *ahead* of the SDK (e.g. SDK 57 uses react-native 0.86.2 and gesture-handler ~2.32, while npm latest was 0.87 / 3.2.1). Installing `@latest` breaks `expo-doctor`.
+- **Bump ALL `expo-*` packages together**, not just `expo` — a mixed graph (expo 57 + expo-constants 56) is unsatisfiable and crashes the pnpm resolver.
+- **Re-pin the `pnpm-workspace.yaml` overrides in lockstep** (react-native, reanimated, worklets, screens) to the new SDK versions, and sync the `@repo/*` dev/peer RN copies — otherwise the overrides fight `expo install`.
+- **Stuck transitive Expo pins** (e.g. `@expo/metro-runtime@56`, `@expo/dom-webview@56` lingering after a bump) are a **pnpm store-cache** artifact: `rm -f pnpm-lock.yaml && pnpm install --force` clears them. Plain `pnpm install` won't.
+- **Peer dependencies stay permissive floors** (`react-native: ">=0.79.0"`, not the exact SDK version). The APP pins the exact runtime; `@repo/ui`/`@repo/api-client` only gate out truly-incompatible old versions. Do NOT tighten peers to the current SDK — it causes false conflicts and forced lockstep bumps. Never use `"*"` (a security scanner flags it as matching ancient vulnerable versions).
+- **Verify after:** `npx expo-doctor` (must be clean), `pnpm typecheck`, `pnpm lint`, and a real `npx expo export --platform android` bundle. Then bump the SDK version strings in `AGENTS.md` (×2), `README.md`, and this skill.
 
 ## How to add things
 

@@ -23,17 +23,22 @@ nodeLinker: hoisted
 # https://www.nativewind.dev/v5/getting-started/installation#5-override-the-lightningcss-version
 overrides:
   lightningcss: "1.30.1"
+  # tiged (create-rnstack) pulls tar@^6, whose 6.x line has unpatched node-tar
+  # advisories (arbitrary file overwrite / DoS). Force the patched 7.5.x. This is
+  # a dev-only CLI dependency (template extraction), never in the app bundle.
+  tar: ">=7.5.19"
   # Native modules must resolve to a SINGLE version across the workspace.
   # Two copies of react-native / reanimated / worklets in one bundle cause a
   # "Maximum call stack size exceeded" recursion in `get NativeModules` at
   # startup. Pin every RN-family package to the mobile app's exact versions.
+  # (SDK 57 / RN 0.86 values — re-pinned in lockstep with the app on upgrade.)
   react: "19.2.3"
   react-dom: "19.2.3"
-  react-native: "0.85.3"
-  react-native-reanimated: "4.3.1"
-  react-native-worklets: "0.8.3"
+  react-native: "0.86.2"
+  react-native-reanimated: "4.5.1"
+  react-native-worklets: "0.10.1"
   react-native-safe-area-context: "~5.7.0"
-  react-native-screens: "4.25.2"
+  react-native-screens: "~4.26.0"
 
 # esbuild (via tsup) builds a native binary in its postinstall; needed to bundle
 # the create-rnstack CLI. pnpm blocks build scripts by default — allow this one.

@@ -9,7 +9,7 @@ components, the package layout, or dependencies.**
 
 ## Stack & layout
 
-Expo SDK 56 (New Architecture, RN 0.85) · Expo Router · NativeWind v5 (Tailwind v4) · React
+Expo SDK 57 (New Architecture, RN 0.86) · Expo Router · NativeWind v5 (Tailwind v4) · React
 Native Reusables · TanStack Query · TypeScript · pnpm + Turborepo · Biome.
 
 ```
