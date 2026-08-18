@@ -126,21 +126,27 @@ it queues and re-attach with `eas build:list`.
 
 The app ships a dynamic [`app.config.ts`](apps/mobile/app.config.ts) driven by an `APP_VARIANT`
 env var, so **development, preview, and production builds install side by side** on one device
-(each gets a distinct bundle id + name + deep-link scheme):
+(each gets a distinct bundle id + name + deep-link scheme + icon tint):
 
-| Variant | Bundle id | Name | Scheme |
-| --- | --- | --- | --- |
-| `production` | `com.you.app` | App | `app` |
-| `preview` | `com.you.app.preview` | App (Preview) | `app-preview` |
-| `development` | `com.you.app.dev` | App (Dev) | `app-development` |
+| Variant | Bundle id | Name | Scheme | Icon background |
+| --- | --- | --- | --- | --- |
+| `production` | `com.you.app` | App | `app` | from `app.json` |
+| `preview` | `com.you.app.preview` | App (Preview) | `app-preview` | violet `#A78BFA` |
+| `development` | `com.you.app.dev` | App (Dev) | `app-development` | amber `#FBBF24` |
 
 The base bundle id lives in [`apps/mobile/app.json`](apps/mobile/app.json) (`android.package`);
 `create-rnstack` writes a real one for you (`--bundle-id-prefix`, default `com.<project>`).
 `app.config.ts` spreads `app.json` and appends the per-variant suffix.
 
-> ⚠️ `app.config.ts` **takes precedence** over `app.json` when both exist — edit static values
-> (icons, plugins) in `app.json`, variant logic in `app.config.ts`. The `slug` must stay static
-> across variants (it's the EAS project identity).
+Dev and preview reuse production's icon art with a **tinted adaptive-icon background** so the three
+installs are distinguishable on the home screen without extra assets — swap in per-variant
+`foregroundImage`s in `app.config.ts` if you want distinct art. (Android adaptive icons only;
+iOS shows the same icon per bundle id.)
+
+> ⚠️ `app.config.ts` **takes precedence** over `app.json` when both exist — but ours **spreads**
+> `app.json` (`...config`), so keep both: static values (icon art, plugins) live in `app.json`,
+> variant logic in `app.config.ts`. Don't delete `app.json` — the CLI writes your bundle id there
+> and `app.config.ts` reads it back. The `slug` must stay static across variants (EAS project identity).
 
 Build a variant with its [`eas.json`](apps/mobile/eas.json) profile:
 
