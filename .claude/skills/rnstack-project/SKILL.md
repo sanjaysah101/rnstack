@@ -27,7 +27,9 @@ rn-monorepo/
 │       │   └── global.css      # SINGLE source of truth for theming (see below)
 │       ├── metro.config.js     # minimal; expo/metro-config handles the monorepo
 │       ├── babel.config.js     # explicit react-native-worklets/plugin (pnpm needs it)
-│       ├── app.json            # expo config (NO owner/eas.projectId — added per-dev by eas init)
+│       ├── app.json            # static Expo base (bundle id, icons, plugins)
+│       ├── app.config.ts       # dynamic: APP_VARIANT suffixes (dev/preview/prod)
+│       ├── eas.json            # build profiles (no account identity)
 │       └── AGENTS.md           # "read versioned Expo docs before coding"
 ├── packages/
 │   ├── ui/                     # @repo/ui — the shared UI kit (RNR components live here)
@@ -153,13 +155,26 @@ every component must be eyeballed on-device in Expo Go for styling/flicker. When
 
 ## Building the app — keep it build-tool agnostic
 
-This is a **starter/CLI template**: it must NOT bake in any individual's EAS/cloud account. The
-default path is local dev (`pnpm start`). Two opt-in build paths exist; never assume EAS.
+This is a **starter/CLI template**: it must NOT bake in any individual's EAS/cloud **account** —
+but generic build *config* (profiles) IS shipped. The default path is local dev (`pnpm start`).
 
-**Deliberately NOT committed** (each ties to one Expo account / would break forkers):
-`apps/mobile/eas.json`, and `owner` + `extra.eas.projectId` in `apps/mobile/app.json`. `eas init` /
-`eas build:configure` regenerate these in the *developer's own* copy. Do not re-add them to the
-template — that leaks the maintainer's private-org identity and makes every fork's build fail.
+**Committed — generic, no account identity:** `apps/mobile/eas.json` ships **build profiles only**
+(`development` / `preview` / `production` with `APP_VARIANT` env), and `apps/mobile/app.config.ts`
++ `app.json` define the variant bundle ids/names. These are safe for everyone.
+
+**Deliberately NOT committed** (each ties to one Expo account / would break forkers): `owner` and
+`extra.eas.projectId` — `eas init` writes these into the *developer's own* copy. Do NOT add account
+identifiers to the template; that leaks the maintainer's org identity and makes every fork's build
+fail. (The rule is "no account identity", NOT "no eas.json".)
+
+**Build variants** (`app.config.ts`): a dynamic config spreads `app.json` and appends per-variant
+suffixes so dev/preview/production install side by side. `APP_VARIANT` (set per eas.json profile)
+→ `.dev`/`.preview`/`""` bundle-id suffix + `(Dev)`/`(Preview)` name + distinct scheme. The base
+bundle id lives in `app.json` `android.package` (the CLI's `configureApp` writes the real one at
+scaffold; `app.config.ts` reads it — the two compose, no `APP_BUNDLE_ID` env needed). Runtime
+access via `src/lib/variant.ts` (`APP_VARIANT`, `IS_PRODUCTION`) reading `Constants.expoConfig.extra`.
+⚠️ `app.config.ts` takes precedence over `app.json` when both exist (a known footgun — edit static
+values in `app.json`, variant logic in `app.config.ts`); `slug` MUST stay static (EAS identity).
 
 **Local native build** (needs Android Studio / Xcode): `npx expo run:android` / `run:ios`, or
 `npx expo prebuild` then Gradle/Xcode. `package.json` already has `android`/`ios` scripts.
