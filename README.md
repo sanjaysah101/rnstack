@@ -117,11 +117,45 @@ On the first Android build, answer **yes** to "Generate a new Android Keystore?"
 stores the signing key for you (no local `keytool`). Builds run asynchronously; press `Ctrl+C` after
 it queues and re-attach with `eas build:list`.
 
-> ⚠️ **Monorepo gotcha:** run every `eas` command **from `apps/mobile/`** (where `app.json` lives),
-> _not_ the repo root — at the root the CLI links the wrong project and writes a stray root
-> `eas.json`. The `owner` / `extra.eas.projectId` that `eas init` writes are **yours** — they
-> belong in your own copy, and are safe to commit in a private app repo (they're public identifiers,
-> not secrets). The starter intentionally ships without them.
+> ⚠️ **Monorepo gotcha:** run every `eas` command **from `apps/mobile/`** (where the config lives),
+> _not_ the repo root — at the root the CLI links the wrong project. `eas init` writes an `owner` /
+> `projectId`; those are **yours** (public identifiers, not secrets) and the starter ships without
+> them — a committed `eas.json` with build *profiles* is included, but no account identity.
+
+## Build variants (dev / preview / production)
+
+The app ships a dynamic [`app.config.ts`](apps/mobile/app.config.ts) driven by an `APP_VARIANT`
+env var, so **development, preview, and production builds install side by side** on one device
+(each gets a distinct bundle id + name + deep-link scheme):
+
+| Variant | Bundle id | Name | Scheme |
+| --- | --- | --- | --- |
+| `production` | `com.you.app` | App | `app` |
+| `preview` | `com.you.app.preview` | App (Preview) | `app-preview` |
+| `development` | `com.you.app.dev` | App (Dev) | `app-development` |
+
+The base bundle id lives in [`apps/mobile/app.json`](apps/mobile/app.json) (`android.package`);
+`create-rnstack` writes a real one for you (`--bundle-id-prefix`, default `com.<project>`).
+`app.config.ts` spreads `app.json` and appends the per-variant suffix.
+
+> ⚠️ `app.config.ts` **takes precedence** over `app.json` when both exist — edit static values
+> (icons, plugins) in `app.json`, variant logic in `app.config.ts`. The `slug` must stay static
+> across variants (it's the EAS project identity).
+
+Build a variant with its [`eas.json`](apps/mobile/eas.json) profile:
+
+```sh
+cd apps/mobile
+eas build --profile development   # dev client, internal distribution
+eas build --profile preview       # APK, internal distribution
+eas build --profile production    # AAB for the Play Store
+# locally: APP_VARIANT=preview npx expo start
+```
+
+Read the current variant at runtime from [`src/lib/variant.ts`](apps/mobile/src/lib/variant.ts)
+(`APP_VARIANT`, `IS_PRODUCTION`) — it reads `Constants.expoConfig.extra`.
+`applicationId` is **immutable once published** to the Play Store, so set your real bundle id
+before your first production build.
 
 ## Screens & navigation
 

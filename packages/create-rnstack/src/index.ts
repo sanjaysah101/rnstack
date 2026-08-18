@@ -330,7 +330,11 @@ async function main() {
     "Next steps"
   );
 
-  outro(pc.green("Your rnstack monorepo is ready 🎉"));
+  outro(
+    `${pc.green("Your rnstack monorepo is ready 🎉")}\n` +
+      `${pc.dim(`  Bundle id: ${bundleIdPrefix}.<app> · dev/preview/production variants install side by side.`)}\n` +
+      `${pc.dim("  Set your real bundle id in app.json before your first production build (it's permanent).")}`
+  );
 }
 
 main().catch((err) => {
