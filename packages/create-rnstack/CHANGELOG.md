@@ -1,5 +1,17 @@
 # create-rnstack
 
+## 0.4.0
+
+### Minor Changes
+
+- Add build variants (development / preview / production) so dev, preview, and production builds can be installed **side by side** on one device, following Expo's standard `app.config.ts` pattern:
+
+  - `apps/mobile/app.config.ts` spreads the static `app.json` and appends a per-variant bundle-id suffix (`.dev` / `.preview` / none), name tag (`(Dev)` / `(Preview)`), and deep-link scheme, selected by `APP_VARIANT`.
+  - `apps/mobile/eas.json` ships `development` / `preview` / `production` build profiles (no account identity — `owner`/`projectId` still come from `eas init`).
+  - `src/lib/variant.ts` exposes typed `APP_VARIANT` / `IS_PRODUCTION` at runtime.
+  - The base bundle id (written by `--bundle-id-prefix`) lives in `app.json`; `app.config.ts` reads it, so the two compose with no extra env var. Replaced the `com.anonymous.mobile` placeholder with `com.example.mobile`.
+  - The scaffold outro now surfaces the variants and the immutable-bundle-id warning.
+
 ## 0.3.1
 
 ### Patch Changes
