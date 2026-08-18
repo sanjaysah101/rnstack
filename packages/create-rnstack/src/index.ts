@@ -31,7 +31,7 @@ const CLI_VERSION: string = JSON.parse(
 // (bump this when cutting a new template release). Override with
 // RNSTACK_TEMPLATE_REF for local testing against a branch.
 const TEMPLATE_REPO = "sanjaysah101/rnstack";
-const TEMPLATE_REF = process.env.RNSTACK_TEMPLATE_REF ?? "v0.4.0";
+const TEMPLATE_REF = process.env.RNSTACK_TEMPLATE_REF ?? "v0.5.0";
 
 // Paths inside the template that must NOT end up in a scaffolded project.
 // CHANGELOGs document rnstack's own history — a new project starts fresh.

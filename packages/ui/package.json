@@ -65,7 +65,6 @@
     "lucide-react-native": "^1.31.0",
     "nativewind": "5.0.0-preview.4",
     "postcss": "^8.5.26",
-    "prettier-plugin-tailwindcss": "^0.8.1",
     "react": "19.2.3",
     "react-native": "0.86.2",
     "react-native-css": "^3.0.7",
